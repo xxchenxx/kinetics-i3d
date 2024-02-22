@@ -25,10 +25,10 @@ import i3d
 
 _IMAGE_SIZE = 224
 
-_SAMPLE_VIDEO_FRAMES = 79
+_SAMPLE_VIDEO_FRAMES = 407 
 _SAMPLE_PATHS = {
     'rgb': 'data/v_CricketShot_g04_c01_rgb.npy',
-    'flow': 'data/v_CricketShot_g04_c01_flow.npy',
+    'flow': 'brush_hair.npy',
 }
 
 _CHECKPOINT_PATHS = {
@@ -76,7 +76,7 @@ def main(unused_argv):
     with tf.variable_scope('RGB'):
       rgb_model = i3d.InceptionI3d(
           NUM_CLASSES, spatial_squeeze=True, final_endpoint='Logits')
-      rgb_logits, _ = rgb_model(
+      rgb_logits, rgb_endpoints = rgb_model(
           rgb_input, is_training=False, dropout_keep_prob=1.0)
 
 
@@ -99,7 +99,7 @@ def main(unused_argv):
     with tf.variable_scope('Flow'):
       flow_model = i3d.InceptionI3d(
           NUM_CLASSES, spatial_squeeze=True, final_endpoint='Logits')
-      flow_logits, _ = flow_model(
+      flow_logits, flow_endpoints = flow_model(
           flow_input, is_training=False, dropout_keep_prob=1.0)
     flow_variable_map = {}
     for variable in tf.global_variables():
@@ -136,7 +136,7 @@ def main(unused_argv):
       flow_sample = np.load(_SAMPLE_PATHS['flow'])
       tf.logging.info('Flow data loaded, shape=%s', str(flow_sample.shape))
       feed_dict[flow_input] = flow_sample
-
+    
     out_logits, out_predictions = sess.run(
         [model_logits, model_predictions],
         feed_dict=feed_dict)
